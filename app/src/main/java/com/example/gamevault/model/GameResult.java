@@ -1,5 +1,6 @@
 package com.example.gamevault.model;
 
+
 import com.google.gson.annotations.SerializedName;
 
 public class GameResult {
