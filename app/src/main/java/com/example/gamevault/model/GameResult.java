@@ -20,4 +20,7 @@ public class GameResult {
         return "N/A";
     }
 
+    public String getBackgroundImage() {
+        return backgroundImage;
+    }
 }
