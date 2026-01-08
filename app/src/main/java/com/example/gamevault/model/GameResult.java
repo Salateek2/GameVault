@@ -1,17 +1,17 @@
 package com.example.gamevault.model;
 
-
 import com.google.gson.annotations.SerializedName;
 
 public class GameResult {
 
+    @SerializedName("name")
     public String name;
 
     @SerializedName("released")
     public String released;
 
     @SerializedName("background_image")
-    public String image;
+    public String backgroundImage;
 
     public String getYear() {
         if (released != null && released.length() >= 4) {
@@ -19,4 +19,5 @@ public class GameResult {
         }
         return "N/A";
     }
+
 }

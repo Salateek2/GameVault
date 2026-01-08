@@ -32,5 +32,13 @@ public class HomeFragment extends Fragment {
                     .addToBackStack(null)
                     .commit();
         });
+
+        Button btnNewGames = view.findViewById(R.id.btnNewGames);
+        btnNewGames.setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.main_container, new NewGamesFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
     }
 }
