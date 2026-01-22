@@ -40,6 +40,17 @@ public class HomeFragment extends Fragment {
                     .addToBackStack(null)
                     .commit();
         });
+        Button lookForGamesBtn = view.findViewById(R.id.btnSearchGames);
+        lookForGamesBtn.setOnClickListener(v -> {
+            Fragment searchFragment = new SearchFragment();
+
+            requireActivity()
+                    .getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.main_container, searchFragment)
+                    .addToBackStack(null)
+                    .commit();
+        });
 
         Button btnProfile = view.findViewById(R.id.btnProfile);
 

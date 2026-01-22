@@ -27,6 +27,19 @@
             android:textStyle="bold"
             android:layout_marginTop="12dp" />
 
+                   <!-- screenshots -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerScreenshots"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:overScrollMode="never"
+            android:clipToPadding="false"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            />
+
         <!-- Genres -->
         <TextView
             android:id="@+id/textGenres"
@@ -46,6 +59,17 @@
             android:textSize="14sp"
             android:textColor="#666"
             android:layout_marginTop="2dp" />
+
+        <!-- Platforms -->
+        <TextView
+            android:id="@+id/textPlatforms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Platforms: PC, PlayStation, Xbox"
+            android:textSize="14sp"
+            android:textColor="#666"
+            android:layout_marginTop="4dp" />
+
 
         <!-- Rating -->
         <TextView

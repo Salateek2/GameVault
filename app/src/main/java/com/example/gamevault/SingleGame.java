@@ -5,6 +5,10 @@ import android.os.Parcelable;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
+import okhttp3.internal.platform.Platform;
+
 public class SingleGame implements Parcelable {
 
     @SerializedName("id")
@@ -24,6 +28,24 @@ public class SingleGame implements Parcelable {
 
     @SerializedName("description_raw")
     private String description;
+
+    @SerializedName("platforms")
+    private List<PlatformWrapper> platforms;
+
+    public static class PlatformWrapper {
+        @SerializedName("platform")
+        public Platform platform;
+    }
+    public static class Platform {
+        @SerializedName("id")
+        public int id;
+
+        @SerializedName("name")
+        public String name;
+
+        @SerializedName("slug")
+        public String slug;
+    }
 
     // ---- Constructor ----
     public SingleGame(int id, String name, String released, String backgroundImage, float rating) {
@@ -75,6 +97,9 @@ public class SingleGame implements Parcelable {
     // ---- Getters ----
     public int getId() { return id; }
     public String getName() { return name; }
+    public List<PlatformWrapper> getPlatforms() {
+        return platforms;
+    }
     public String getReleased() { return released; }
     public String getBackgroundImage() { return backgroundImage; }
     public float getRating() { return rating; }
