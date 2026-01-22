@@ -3,20 +3,6 @@ package com.example.gamevault.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.gamevault.R;
-import com.example.gamevault.model.GameResult;
-
-
-import java.util.List;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -25,16 +11,23 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.gamevault.R;
-import com.example.gamevault.model.GameResult;
+import com.example.gamevault.SingleGame;
+
 
 import java.util.List;
 
 public class GameAdapter extends RecyclerView.Adapter<GameAdapter.ViewHolder> {
 
-    private List<GameResult> games;
+    public interface OnGameClickListener {
+        void onGameClick(SingleGame game);
+    }
 
-    public GameAdapter(List<GameResult> games) {
+    private List<SingleGame> games;
+    private OnGameClickListener listener;
+
+    public GameAdapter(List<SingleGame> games, OnGameClickListener listener) {
         this.games = games;
+        this.listener = listener;
     }
 
     @NonNull
@@ -47,17 +40,17 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        GameResult game = games.get(position);
-        holder.name.setText(game.name);
-        holder.year.setText("Year: " + game.getYear());
+        SingleGame game = games.get(position);
 
-        // טוען תמונה עם Glide לתוך ה-ImageView
+        holder.name.setText(game.getName());
+        holder.year.setText(game.getReleased());
+
         Glide.with(holder.imageGame.getContext())
-                .load(game.getBackgroundImage())  // הנחה שיש שדה כזה ב-GameResult
+                .load(game.getBackgroundImage())
+                .placeholder(android.R.color.darker_gray)
+                .into(holder.imageGame);
 
-                .placeholder(android.R.color.darker_gray)  // צבע רקע למשל
-                .into(holder.imageGame);      // במקרה שהטעינה נכשל
-
+        holder.itemView.setOnClickListener(v -> listener.onGameClick(game));
     }
 
     @Override
@@ -77,5 +70,3 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.ViewHolder> {
         }
     }
 }
-
-

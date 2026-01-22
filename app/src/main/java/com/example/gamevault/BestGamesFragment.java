@@ -1,19 +1,13 @@
 package com.example.gamevault;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gamevault.adapter.GameAdapter;
 import com.example.gamevault.model.GameResponse;
-import com.example.gamevault.model.GameResult;
+
 import com.example.gamevault.network.RawgApi;
 import com.example.gamevault.network.RetrofitClient;
 
@@ -34,13 +28,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class BestGamesFragment extends Fragment {
 
     private static final String API_KEY = "415d86e2c1bb4892be23a624f1955b6e";
 
+    private Spinner spinnerGenre, spinnerSort;
     private RecyclerView recyclerView;
     private GameAdapter adapter;
-    private List<GameResult> gamesList = new ArrayList<>();
+    private List<SingleGame> gamesList = new ArrayList<>();
 
     public BestGamesFragment() {
         // Required empty public constructor
@@ -57,37 +53,122 @@ public class BestGamesFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerBestGames);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        loadBestGames();
+        spinnerGenre = view.findViewById(R.id.spinnerGenre);
+        spinnerSort = view.findViewById(R.id.spinnerSort);
+
+        setupSpinners();
+
+        loadBestGames();  // initial load
 
         return view;
     }
 
-    private void loadBestGames() {
-        RawgApi api = RetrofitClient.getInstance().create(RawgApi.class);
+    private void setupSpinners() {
+        String[] genres = {
+                "All",
+                "Action",
+                "RPG",
+                "Adventure",
+                "Shooter",
+                "Strategy"
+        };
+        ArrayAdapter<String> genreAdapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                genres
+        );
+        genreAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerGenre.setAdapter(genreAdapter);
 
+        String[] sortOptions = {
+                "Popularity",
+                "Rating",
+                "Release Date",
+                "Name"
+        };
+        ArrayAdapter<String> sortAdapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                sortOptions
+        );
+        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSort.setAdapter(sortAdapter);
+
+        AdapterView.OnItemSelectedListener listener = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                loadBestGames();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // No action needed
+            }
+        };
+
+        spinnerGenre.setOnItemSelectedListener(listener);
+        spinnerSort.setOnItemSelectedListener(listener);
+    }
+
+    private void loadBestGames() {
+        String selectedGenre = spinnerGenre.getSelectedItem().toString();
+        String selectedSort = spinnerSort.getSelectedItem().toString();
+
+        String genreParam = selectedGenre.equals("All") ? null : selectedGenre.toLowerCase();
+
+        String sortParam;
+        switch (selectedSort) {
+            case "Popularity":
+                sortParam = "-added";
+                break;
+            case "Rating":
+                sortParam = "-rating";
+                break;
+            case "Release Date":
+                sortParam = "-released";
+                break;
+            case "Name":
+                sortParam = "name";
+                break;
+            default:
+                sortParam = "-rating";
+        }
+
+        RawgApi api = RetrofitClient.getInstance().create(RawgApi.class);
         api.getBestGamesOfYear(
                 API_KEY,
                 "2024-01-01,2024-12-31",
-                "-rating",
-                40
+                sortParam,
+                40,
+                genreParam
         ).enqueue(new Callback<GameResponse>() {
-
             @Override
-            public void onResponse(Call<GameResponse> call,
-                                   Response<GameResponse> response) {
-
+            public void onResponse(Call<GameResponse> call, Response<GameResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-
-                    List<GameResult> results = response.body().results;
-
+                    List<SingleGame> results = response.body().results;
                     if (results != null && !results.isEmpty()) {
                         gamesList.clear();
                         gamesList.addAll(results);
 
-                        adapter = new GameAdapter(gamesList);
-                        recyclerView.setAdapter(adapter);
-                    }
+                        if (adapter == null) {
+                            adapter = new GameAdapter(gamesList, game -> {
+                                Bundle bundle = new Bundle();
+                                bundle.putParcelable("game", game);
 
+                                GameDetails detailFragment = new GameDetails();
+                                detailFragment.setArguments(bundle);
+
+                                requireActivity().getSupportFragmentManager()
+                                        .beginTransaction()
+                                        .replace(R.id.main_container, detailFragment)
+                                        .addToBackStack(null)
+                                        .commit();
+                            });
+                            recyclerView.setAdapter(adapter);
+                        } else {
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
                 } else {
                     Log.e("BestGamesFragment", "Response error: " + response.message());
                 }

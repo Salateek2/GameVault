@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gamevault.adapter.GameAdapter;
 import com.example.gamevault.model.GameResponse;
-import com.example.gamevault.model.GameResult;
+
 import com.example.gamevault.network.RawgApi;
 import com.example.gamevault.network.RetrofitClient;
 
@@ -31,7 +31,7 @@ public class NewGamesFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private GameAdapter adapter;
-    private List<GameResult> gamesList = new ArrayList<>();
+    private List<SingleGame> gamesList = new ArrayList<>();
 
     public NewGamesFragment() {
         // Required empty public constructor
@@ -56,7 +56,6 @@ public class NewGamesFragment extends Fragment {
     private void loadNewGames() {
         RawgApi api = RetrofitClient.getInstance().create(RawgApi.class);
 
-        // Fetching games released in 2024, ordered by release date descending
         api.getBestGamesOfYear(
                 API_KEY,
                 "2024-01-01,2024-12-31",
@@ -70,13 +69,28 @@ public class NewGamesFragment extends Fragment {
 
                 if (response.isSuccessful() && response.body() != null) {
 
-                    List<GameResult> results = response.body().results;
+                    List<SingleGame> results = response.body().results;
 
                     if (results != null && !results.isEmpty()) {
                         gamesList.clear();
                         gamesList.addAll(results);
 
-                        adapter = new GameAdapter(gamesList);
+                        adapter = new GameAdapter(gamesList, game -> {
+
+                            Bundle bundle = new Bundle();
+                            bundle.putParcelable("game", game);
+
+                            GameDetails detailFragment = new GameDetails();
+                            detailFragment.setArguments(bundle);
+
+                            requireActivity()
+                                    .getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .replace(R.id.main_container, detailFragment)
+                                    .addToBackStack(null)
+                                    .commit();
+                        });
+
                         recyclerView.setAdapter(adapter);
                     }
 

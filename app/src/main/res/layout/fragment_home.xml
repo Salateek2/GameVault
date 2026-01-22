@@ -1,42 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp">
+    android:layout_height="match_parent">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/tvTitle"
+    <!-- Profile Button (top-right) -->
+    <Button
+        android:id="@+id/btnProfile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="GameVault"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="32dp" />
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:text="Profile" />
 
-    <!-- Best Games of the Year -->
-    <Button
-        android:id="@+id/btnBestGames"
+    <!-- Main Content -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Best Games of the Year"
-        android:layout_marginBottom="16dp" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp">
 
-    <!-- New Games -->
-    <Button
-        android:id="@+id/btnNewGames"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="New Games"
-        android:layout_marginBottom="16dp" />
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GameVault"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="32dp" />
 
-    <!-- Look for Games -->
-    <Button
-        android:id="@+id/btnSearchGames"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Look for Games" />
+        <!-- Best Games -->
+        <Button
+            android:id="@+id/btnBestGames"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Best Games of the Year"
+            android:layout_marginBottom="16dp" />
 
-</LinearLayout>
+        <!-- New Games -->
+        <Button
+            android:id="@+id/btnNewGames"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="New Games"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Search -->
+        <Button
+            android:id="@+id/btnSearchGames"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Look for Games" />
+
+    </LinearLayout>
+
+</FrameLayout>
