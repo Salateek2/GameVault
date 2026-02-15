@@ -137,7 +137,7 @@ public class BestGamesFragment extends Fragment {
         RawgApi api = RetrofitClient.getInstance().create(RawgApi.class);
         api.getBestGamesOfYear(
                 API_KEY,
-                "2024-01-01,2024-12-31",
+                "2025-01-01,2026-01-31",
                 sortParam,
                 40,
                 genreParam

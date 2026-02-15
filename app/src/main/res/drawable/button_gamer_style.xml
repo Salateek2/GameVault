@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF"> <!-- White ripple effect on click -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp" />
+            <gradient
+                android:startColor="#2C2C2C"
+                android:endColor="#1A1A1A"
+                android:angle="45" />
+            <stroke
+                android:width="2dp"
+                android:color="#CD7F32" /> <!-- Bronze border to match your theme -->
+        </shape>
+    </item>
+</ripple>
