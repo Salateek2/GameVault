@@ -1,6 +1,8 @@
 package com.example.gamevault.adapter;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -9,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.gamevault.R;
+import com.github.chrisbanes.photoview.PhotoView;
 
 import java.util.List;
 
@@ -26,8 +30,10 @@ public class ScreenshotAdapter extends RecyclerView.Adapter<ScreenshotAdapter.Vi
     @Override
     public ScreenshotAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ImageView imageView = new ImageView(context);
-        RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(200, 120);
-        params.setMargins(8, 0, 8, 0);
+        // Using dp for dimensions (converted from px roughly)
+        float density = context.getResources().getDisplayMetrics().density;
+        RecyclerView.LayoutParams params = new RecyclerView.LayoutParams((int)(200 * density), (int)(120 * density));
+        params.setMargins((int)(8 * density), 0, (int)(8 * density), 0);
         imageView.setLayoutParams(params);
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         return new ViewHolder(imageView);
@@ -35,7 +41,24 @@ public class ScreenshotAdapter extends RecyclerView.Adapter<ScreenshotAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull ScreenshotAdapter.ViewHolder holder, int position) {
-        Glide.with(context).load(screenshots.get(position)).into((ImageView) holder.itemView);
+        String url = screenshots.get(position);
+        Glide.with(context).load(url).into((ImageView) holder.itemView);
+
+        holder.itemView.setOnClickListener(v -> showFullScreenImage(url));
+    }
+
+    private void showFullScreenImage(String url) {
+        Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        View view = LayoutInflater.from(context).inflate(R.layout.dialog_full_screen_image, null);
+        dialog.setContentView(view);
+
+        PhotoView photoView = view.findViewById(R.id.fullScreenImageView);
+        ImageView btnClose = view.findViewById(R.id.btnClose);
+
+        Glide.with(context).load(url).into(photoView);
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     @Override
