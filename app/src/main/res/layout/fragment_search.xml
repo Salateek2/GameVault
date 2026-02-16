@@ -13,30 +13,61 @@
         android:textStyle="bold"
         android:layout_marginBottom="12dp" />
 
-    <!-- Genre -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Genre" />
-
-    <Spinner
-        android:id="@+id/spinnerGenre"
+    <!-- Search Query -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="48dp" />
+        android:layout_marginBottom="8dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-    <!-- Platform -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Platform"
-        android:layout_marginTop="8dp" />
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editSearchQuery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Search game name..."
+            android:maxLines="1"
+            android:inputType="text" />
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <Spinner
-        android:id="@+id/spinnerPlatform"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="48dp" />
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginEnd="4dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Genre" />
+            <Spinner
+                android:id="@+id/spinnerGenre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="4dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Platform" />
+            <Spinner
+                android:id="@+id/spinnerPlatform"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </LinearLayout>
+    </LinearLayout>
 
     <!-- Sort -->
     <TextView
@@ -59,7 +90,14 @@
         android:text="Search"
         android:layout_marginTop="16dp" />
 
-    <!-- Results -->
+    <ProgressBar
+        android:id="@+id/progressBarSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="12dp" />
+
     <!-- Results -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerSearch"
@@ -69,4 +107,3 @@
         android:layout_marginTop="12dp" />
 
 </LinearLayout>
-

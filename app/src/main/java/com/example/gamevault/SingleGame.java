@@ -7,8 +7,6 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import okhttp3.internal.platform.Platform;
-
 public class SingleGame implements Parcelable {
 
     @SerializedName("id")
@@ -63,6 +61,7 @@ public class SingleGame implements Parcelable {
         released = in.readString();
         backgroundImage = in.readString();
         rating = in.readFloat();
+        description = in.readString(); // Added description to parcel
     }
     public SingleGame() {
         // Empty constructor required for Firestore deserialization
@@ -87,6 +86,7 @@ public class SingleGame implements Parcelable {
         dest.writeString(released);
         dest.writeString(backgroundImage);
         dest.writeFloat(rating);
+        dest.writeString(description); // Added description to parcel
     }
 
     @Override
@@ -94,7 +94,7 @@ public class SingleGame implements Parcelable {
         return 0;
     }
 
-    // ---- Getters ----
+    // ---- Getters & Setters ----
     public int getId() { return id; }
     public String getName() { return name; }
     public List<PlatformWrapper> getPlatforms() {
@@ -105,5 +105,9 @@ public class SingleGame implements Parcelable {
     public float getRating() { return rating; }
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

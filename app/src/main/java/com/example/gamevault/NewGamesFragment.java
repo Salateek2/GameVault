@@ -48,9 +48,36 @@ public class NewGamesFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerNewGames);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        loadNewGames();
+        if (gamesList.isEmpty()) {
+            loadNewGames();
+        } else {
+            setupRecyclerView();
+        }
 
         return view;
+    }
+
+    private void setupRecyclerView() {
+        if (adapter == null) {
+            adapter = new GameAdapter(gamesList, game -> {
+                Bundle bundle = new Bundle();
+                bundle.putParcelable("game", game);
+
+                GameDetails detailFragment = new GameDetails();
+                detailFragment.setArguments(bundle);
+
+                requireActivity()
+                        .getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.main_container, detailFragment)
+                        .addToBackStack(null)
+                        .commit();
+            });
+            recyclerView.setAdapter(adapter);
+        } else {
+            recyclerView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void loadNewGames() {
@@ -74,24 +101,7 @@ public class NewGamesFragment extends Fragment {
                     if (results != null && !results.isEmpty()) {
                         gamesList.clear();
                         gamesList.addAll(results);
-
-                        adapter = new GameAdapter(gamesList, game -> {
-
-                            Bundle bundle = new Bundle();
-                            bundle.putParcelable("game", game);
-
-                            GameDetails detailFragment = new GameDetails();
-                            detailFragment.setArguments(bundle);
-
-                            requireActivity()
-                                    .getSupportFragmentManager()
-                                    .beginTransaction()
-                                    .replace(R.id.main_container, detailFragment)
-                                    .addToBackStack(null)
-                                    .commit();
-                        });
-
-                        recyclerView.setAdapter(adapter);
+                        setupRecyclerView();
                     }
 
                 } else {

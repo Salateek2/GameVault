@@ -48,6 +48,7 @@ public class GameDetails extends Fragment {
     private TextView gameTitle;
     private TextView gameDescription;
     private ProgressBar progressBar;
+    private boolean isFromLibrary = false;
 
     public GameDetails() {
         // Required empty public constructor
@@ -66,6 +67,8 @@ public class GameDetails extends Fragment {
         gameImage = view.findViewById(R.id.imageGameCover);
         gameTitle = view.findViewById(R.id.textGameTitle);
         gameDescription = view.findViewById(R.id.textDescription);
+        
+        progressBar = view.findViewById(R.id.progressBar);
 
         recyclerScreenshots = view.findViewById(R.id.recyclerScreenshots);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
@@ -74,38 +77,68 @@ public class GameDetails extends Fragment {
         recyclerScreenshots.setAdapter(screenshotAdapter);
 
 
+        Bundle args = getArguments();
+        if (args != null) {
+            SingleGame basicGame = args.getParcelable("game");
+            isFromLibrary = args.getBoolean("isFromLibrary", false);
 
-        SingleGame basicGame = getArguments().getParcelable("game");
+            if (isFromLibrary) {
+                btnSaveToLibrary.setText("Delete from Library");
+                btnSaveToLibrary.setOnClickListener(v -> deleteGameFromLibrary());
+            } else {
+                btnSaveToLibrary.setOnClickListener(v -> saveGameToLibrary());
+            }
 
-        if (basicGame != null) {
-            gameTitle.setText(basicGame.getName());
+            if (basicGame != null) {
+                gameTitle.setText(basicGame.getName());
 
-            Glide.with(this)
-                    .load(basicGame.getBackgroundImage())
-                    .into(gameImage);
+                Glide.with(this)
+                        .load(basicGame.getBackgroundImage())
+                        .into(gameImage);
 
-            loadGameDetails(basicGame.getId());
-            loadScreenshots(basicGame.getId());
-            this. currentGame = basicGame;
+                loadGameDetails(basicGame.getId());
+                loadScreenshots(basicGame.getId());
+                this.currentGame = basicGame;
+                
+                if (!isFromLibrary) {
+                    checkIfGameInLibrary(basicGame.getId());
+                }
+            }
         }
-        btnSaveToLibrary.setOnClickListener(v -> saveGameToLibrary());
 
         return view;
     }
+
+    private void checkIfGameInLibrary(int gameId) {
+        String userId = ((MainActivity) requireActivity()).getUserId();
+        if (userId == null) return;
+
+        FirebaseFirestore.getInstance().collection("users")
+                .document(userId)
+                .collection("favorites")
+                .document(String.valueOf(gameId))
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (isAdded() && documentSnapshot.exists()) {
+                        btnSaveToLibrary.setText("In Library");
+                        btnSaveToLibrary.setEnabled(false);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("GameDetails", "Error checking library", e));
+    }
+
     private void loadScreenshots(int gameId) {
         RawgApi api = RetrofitClient.getInstance().create(RawgApi.class);
 
         api.getGameScreenshots(gameId, API_KEY).enqueue(new Callback<ScreenshotResponse>() {
             @Override
             public void onResponse(Call<ScreenshotResponse> call, Response<ScreenshotResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
                     screenshotUrls.clear();
                     for (Screenshot screenshot : response.body().results) {
                         screenshotUrls.add(screenshot.imageUrl);
                     }
                     screenshotAdapter.notifyDataSetChanged();
-                } else {
-                    Log.e("GameDetails", "No screenshots found or response failed");
                 }
             }
 
@@ -117,79 +150,118 @@ public class GameDetails extends Fragment {
     }
 
     private void saveGameToLibrary() {
-        if (currentGame == null) {
-            Toast.makeText(getContext(), "No game to save", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (currentGame == null) return;
 
         String userId = ((MainActivity) requireActivity()).getUserId();
         if (userId == null) {
-            Toast.makeText(getContext(), "User not authenticated yet", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "User ID not ready. Please try again in a moment.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // Visual feedback immediately
+        btnSaveToLibrary.setEnabled(false);
+        btnSaveToLibrary.setText("In Library");
 
-        db.collection("users")
+        FirebaseFirestore.getInstance().collection("users")
                 .document(userId)
                 .collection("favorites")
-                .document(String.valueOf(currentGame.getId()))  // Assuming game ID is unique integer
+                .document(String.valueOf(currentGame.getId()))
                 .set(currentGame)
-                .addOnSuccessListener(aVoid ->
-                        Toast.makeText(getContext(), "Game saved to your library!", Toast.LENGTH_SHORT).show()
-                )
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Failed to save game: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
+                .addOnSuccessListener(aVoid -> {
+                    // Force the update to happen on the UI thread and check if fragment is still attached
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            btnSaveToLibrary.setText("In Library");
+                            btnSaveToLibrary.setEnabled(false);
+                            Toast.makeText(getContext(), currentGame.getName() + " added to library!", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            btnSaveToLibrary.setEnabled(true);
+                            btnSaveToLibrary.setText("Save to My Library");
+                            Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        });
+                    }
+                    Log.e("GameDetails", "Failed to save to library", e);
+                });
+    }
+
+    private void deleteGameFromLibrary() {
+        if (currentGame == null) return;
+
+        String userId = ((MainActivity) requireActivity()).getUserId();
+        if (userId == null) return;
+
+        btnSaveToLibrary.setEnabled(false);
+        btnSaveToLibrary.setText("Deleted successfully!");
+
+        FirebaseFirestore.getInstance().collection("users")
+                .document(userId)
+                .collection("favorites")
+                .document(String.valueOf(currentGame.getId()))
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), currentGame.getName() + " removed from library", Toast.LENGTH_SHORT).show();
+                        getParentFragmentManager().popBackStack();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (isAdded()) {
+                        btnSaveToLibrary.setEnabled(true);
+                        btnSaveToLibrary.setText("Delete from Library");
+                        Toast.makeText(getContext(), "Failed to delete: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void loadGameDetails(int gameId) {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
         RawgApi api = RetrofitClient.getInstance().create(RawgApi.class);
-
         api.getGameDetails(gameId, API_KEY)
                 .enqueue(new Callback<SingleGame>() {
-
                     @Override
-                    public void onResponse(Call<SingleGame> call,
-                                           Response<SingleGame> response) {
+                    public void onResponse(Call<SingleGame> call, Response<SingleGame> response) {
+                        if (!isAdded()) return;
+                        if (progressBar != null) progressBar.setVisibility(View.GONE);
 
                         if (response.isSuccessful() && response.body() != null) {
                             SingleGame fullGame = response.body();
 
-                            if (fullGame.getDescription() != null &&
-                                    !fullGame.getDescription().isEmpty()) {
+                            if (fullGame.getDescription() != null && !fullGame.getDescription().isEmpty()) {
                                 gameDescription.setText(fullGame.getDescription());
+                                // Update current game with full description if needed
+                                if (currentGame != null) {
+                                    currentGame.setDescription(fullGame.getDescription());
+                                }
                             } else {
                                 gameDescription.setText("No description available.");
                             }
 
-                            if (fullGame.getPlatforms() != null && !fullGame.getPlatforms().isEmpty()) {
+                            if (fullGame.getPlatforms() != null) {
                                 StringBuilder platformsString = new StringBuilder();
                                 for (SingleGame.PlatformWrapper p : fullGame.getPlatforms()) {
                                     if (p.platform != null && p.platform.name != null) {
-                                        if (platformsString.length() > 0) {
-                                            platformsString.append(", ");
-                                        }
+                                        if (platformsString.length() > 0) platformsString.append(", ");
                                         platformsString.append(p.platform.name);
                                     }
                                 }
                                 textPlatforms.setText("Platforms: " + platformsString.toString());
-                            } else {
-                                textPlatforms.setText("Platforms: Unknown");
                             }
                         }
                     }
 
                     @Override
                     public void onFailure(Call<SingleGame> call, Throwable t) {
-                        progressBar.setVisibility(View.GONE);
-                        Log.e("GameDetailFragment", "Failed to load details", t);
-                        gameDescription.setText("Failed to load game details.");
+                        if (isAdded()) {
+                            if (progressBar != null) progressBar.setVisibility(View.GONE);
+                            gameDescription.setText("Failed to load game details.");
+                        }
                     }
                 });
     }
-
-
-
 }

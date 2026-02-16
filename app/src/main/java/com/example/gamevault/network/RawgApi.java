@@ -27,14 +27,14 @@ public interface RawgApi {
             @Query("page_size") int pageSize
     );
 
-    // ✅ NEW version with rating (fixes your error)
+    // Fixed version: use 'genres' instead of 'rating' to allow filtering by genre
     @GET("games")
     Call<GameResponse> getBestGamesOfYear(
             @Query("key") String apiKey,
             @Query("dates") String dates,
             @Query("ordering") String ordering,
             @Query("page_size") int pageSize,
-            @Query("rating") String rating
+            @Query("genres") String genres
     );
 
     @GET("games")

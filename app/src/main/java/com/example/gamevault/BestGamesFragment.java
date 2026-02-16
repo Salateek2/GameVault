@@ -58,9 +58,36 @@ public class BestGamesFragment extends Fragment {
 
         setupSpinners();
 
-        loadBestGames();  // initial load
+        // Only load if the list is empty (prevents reloading on back navigation)
+        if (gamesList.isEmpty()) {
+            loadBestGames();
+        } else {
+            setupRecyclerView();
+        }
 
         return view;
+    }
+
+    private void setupRecyclerView() {
+        if (adapter == null) {
+            adapter = new GameAdapter(gamesList, game -> {
+                Bundle bundle = new Bundle();
+                bundle.putParcelable("game", game);
+
+                GameDetails detailFragment = new GameDetails();
+                detailFragment.setArguments(bundle);
+
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.main_container, detailFragment)
+                        .addToBackStack(null)
+                        .commit();
+            });
+            recyclerView.setAdapter(adapter);
+        } else {
+            recyclerView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void setupSpinners() {
@@ -97,7 +124,10 @@ public class BestGamesFragment extends Fragment {
         AdapterView.OnItemSelectedListener listener = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                loadBestGames();
+                // To avoid triggering on first setup when we already have data
+                if (!gamesList.isEmpty()) {
+                    loadBestGames();
+                }
             }
 
             @Override
@@ -149,25 +179,7 @@ public class BestGamesFragment extends Fragment {
                     if (results != null && !results.isEmpty()) {
                         gamesList.clear();
                         gamesList.addAll(results);
-
-                        if (adapter == null) {
-                            adapter = new GameAdapter(gamesList, game -> {
-                                Bundle bundle = new Bundle();
-                                bundle.putParcelable("game", game);
-
-                                GameDetails detailFragment = new GameDetails();
-                                detailFragment.setArguments(bundle);
-
-                                requireActivity().getSupportFragmentManager()
-                                        .beginTransaction()
-                                        .replace(R.id.main_container, detailFragment)
-                                        .addToBackStack(null)
-                                        .commit();
-                            });
-                            recyclerView.setAdapter(adapter);
-                        } else {
-                            adapter.notifyDataSetChanged();
-                        }
+                        setupRecyclerView();
                     }
                 } else {
                     Log.e("BestGamesFragment", "Response error: " + response.message());
